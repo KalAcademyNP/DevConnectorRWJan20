@@ -3,20 +3,21 @@ const User = require("../../models/User");
 const gravatar = require("gravatar");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const passport = require('passport');
+const passport = require("passport");
 const keys = require("../../config/keys");
 const router = express.Router();
 
 // Load input validation
-const validateRegisterInput = require('../../validation/register');
+const validateRegisterInput = require("../../validation/register");
+const validateLoginInput = require("../../validation/login");
 
 // @route   POST api/users/register
 // @desc    Register user
 // @access  public
 router.post("/register", (req, res) => {
-  const {errors, isValid} =  validateRegisterInput(req.body);
+  const { errors, isValid } = validateRegisterInput(req.body);
   //Check validation
-  if (!isValid){
+  if (!isValid) {
     return res.status(400).json(errors);
   }
   User.findOne({ email: req.body.email })
@@ -60,7 +61,11 @@ router.post("/register", (req, res) => {
 router.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-
+  const { errors, isValid } = validateLoginInput(req.body);
+  //Check validation
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
   //Find user by email
   User.findOne({ email })
     .then(user => {
@@ -96,10 +101,12 @@ router.post("/login", (req, res) => {
 // @route   GET api/users/current
 // @desc    Return current user
 // @access  private
-router.get('/current', 
-  passport.authenticate('jwt', {session: false}),
-(req, res) => {
-  res.json(req.user);
-})
+router.get(
+  "/current",
+  passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    res.json(req.user);
+  }
+);
 
 module.exports = router;
